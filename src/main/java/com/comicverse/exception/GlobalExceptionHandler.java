@@ -19,10 +19,10 @@ public class GlobalExceptionHandler {
         Map<String, Object> error = new HashMap<>();
         error.put("timestamp", LocalDateTime.now());
         error.put("status", HttpStatus.BAD_REQUEST.value());
-        error.put("error", "Bad Request");
+        error.put("error", "Not Found");
         error.put("message", ex.getMessage());
 
-        return ResponseEntity.badRequest().body(error);
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
     }
 
     // Manejar cualquier otro error general
