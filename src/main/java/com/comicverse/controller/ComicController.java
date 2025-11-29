@@ -1,6 +1,8 @@
 package com.comicverse.controller;
+
 import com.comicverse.model.Comic;
 import com.comicverse.service.ComicService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,47 +18,84 @@ public class ComicController {
         this.comicService = comicService;
     }
 
-    // GET - listar todos
     @GetMapping
-    public List<Comic> obtenerTodos() {
-        return comicService.obtenerTodos();
+    public ResponseEntity<?> obtenerTodos() {
+        try {
+            List<Comic> comics = comicService.obtenerTodos();
+            return ResponseEntity.ok(comics);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error al obtener la lista de cómics");
+        }
     }
 
-    // GET - buscar por ID
     @GetMapping("/{id}")
-    public ResponseEntity<Comic> obtenerPorId(@PathVariable Long id) {
-        return comicService.obtenerPorId(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<?> obtenerPorId(@PathVariable Long id) {
+
+        try {
+            var optionalComic = comicService.obtenerPorId(id);
+
+            if (optionalComic.isPresent()) {
+                return ResponseEntity.ok(optionalComic.get());
+            } else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body("Cómic no encontrado");
+            }
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error al obtener el cómic");
+        }
     }
 
-    // POST - crear nuevo comic
     @PostMapping
-    public Comic crearComic(@RequestBody Comic comic) {
-        return comicService.guardar(comic);
+    public ResponseEntity<?> crearComic(@RequestBody Comic comic) {
+        try {
+            Comic creado = comicService.guardar(comic);
+            return ResponseEntity.status(HttpStatus.CREATED).body(creado);
+
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error al crear el cómic");
+        }
     }
 
-    // PUT - actualizar comic
     @PutMapping("/{id}")
-    public ResponseEntity<Comic> actualizar(@PathVariable Long id, @RequestBody Comic comicActualizado) {
+    public ResponseEntity<?> actualizar(@PathVariable Long id, @RequestBody Comic comicActualizado) {
+        try {
+            if (!comicService.existe(id)) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("El cómic no existe");
+            }
 
-        if (!comicService.existe(id)) {
-            return ResponseEntity.notFound().build();
+            comicActualizado.setId(id);
+            Comic actualizado = comicService.actualizar(id, comicActualizado);
+            return ResponseEntity.ok(actualizado);
+
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error al actualizar el cómic");
         }
-
-        comicActualizado.setId(id);
-        return ResponseEntity.ok(comicService.actualizar(id, comicActualizado));
     }
 
-    // DELETE - eliminar comic
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> eliminar(@PathVariable Long id) {
+    public ResponseEntity<?> eliminar(@PathVariable Long id) {
+        try {
+            if (!comicService.existe(id)) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("El cómic no existe");
+            }
 
-        if (!comicService.existe(id)) {
-            return ResponseEntity.notFound().build();
+            comicService.eliminar(id);
+            return ResponseEntity.noContent().build();
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error al eliminar el cómic");
         }
-
-        comicService.eliminar(id);
-        return ResponseEntity.noContent().build();
     }
 }

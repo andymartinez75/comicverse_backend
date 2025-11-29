@@ -29,66 +29,96 @@ public class PedidoService {
     }
 
     public Pedido obtenerPedido(Long id) {
-        return pedidoRepository.findById(id).orElseThrow(() -> new IllegalArgumentException(
-                "El pedido con ID " + id + " no existe"));
+        return pedidoRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "El pedido con ID " + id + " no existe"));
     }
 
     public Pedido crearPedido(Pedido pedido) {
 
+        // Validación general
         pedidoValidator.validarPedido(pedido);
 
         // Fecha automática
         pedido.setFecha(LocalDate.now());
 
-        double total = 0;
-
-        // Proceso cada detalle
-        for (PedidoDetalle detalle : pedido.getDetalles()) {
-
-            // Buscar comic real en la BD
-            Comic comicReal = comicRepository.findById(detalle.getComic().getId())
-                    .orElseThrow(() -> new RuntimeException("Comic no encontrado"));
-
-            // Asigno el comic completo al detalle
-            detalle.setComic(comicReal);
-
-            // Calculo subtotal
-            double subtotal = comicReal.getPrecio() * detalle.getCantidad();
-            detalle.setSubtotal(subtotal);
-
-            // Sumo al total del pedido
-            total += subtotal;
-
-            // Relación bidireccional: DETALLE → PEDIDO
-            detalle.setPedido(pedido);
-
-            // Reducir stock
-            comicReal.setStock(comicReal.getStock() - detalle.getCantidad());
-        }
-
-        //Guardar total en Pedido
+        // Procesar detalles (comics, stock, subtotales)
+        double total = procesarDetalles(pedido);
         pedido.setTotal(total);
 
-        //Guardar pedido completo con detalles
+        // Guardar el pedido completo
         return pedidoRepository.save(pedido);
     }
 
     public Pedido actualizarPedido(Long id, Pedido pedido) {
 
-        Pedido existente = pedidoRepository.findById(id).orElse(null);
-        if (existente == null) return null;
+        Pedido existente = pedidoRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "No existe el pedido con ID " + id));
 
+        // Validamos pedido
+        pedidoValidator.validarPedido(pedido);
+
+        // Sobreescribimos datos
         existente.setUsuario(pedido.getUsuario());
-        existente.setTotal(pedido.getTotal());
-        existente.setDetalles(pedido.getDetalles());
+        existente.setFecha(LocalDate.now());
 
+        // Procesar nuevamente detalles
+        double total = procesarDetalles(pedido);
+        existente.setTotal(total);
+
+        // Guardar
         return pedidoRepository.save(existente);
     }
 
     public void eliminarPedido(Long id) {
+        if (!pedidoRepository.existsById(id)) {
+            throw new IllegalArgumentException(
+                    "No se puede eliminar: el pedido con ID " + id + " no existe");
+        }
         pedidoRepository.deleteById(id);
     }
+
+    // ============================================
+    //  MÉTODO PRIVADO QUE PROCESA LOS DETALLES
+    // ============================================
+
+    private double procesarDetalles(Pedido pedido) {
+        double total = 0;
+
+        for (PedidoDetalle detalle : pedido.getDetalles()) {
+
+            // Buscar comic real
+            Comic comic = comicRepository.findById(detalle.getComic().getId())
+                    .orElseThrow(() -> new IllegalArgumentException(
+                            "Comic con ID " + detalle.getComic().getId() + " no encontrado"));
+
+            // Asignamos comic real
+            detalle.setComic(comic);
+
+            // Calcular subtotal
+            double subtotal = comic.getPrecio() * detalle.getCantidad();
+            detalle.setSubtotal(subtotal);
+
+            // Sumar total
+            total += subtotal;
+
+            // Vincular detalle → pedido
+            detalle.setPedido(pedido);
+
+            // Actualizar stock
+            if (comic.getStock() < detalle.getCantidad()) {
+                throw new IllegalArgumentException(
+                        "Stock insuficiente para el comic: " + comic.getTitulo());
+            }
+
+            comic.setStock(comic.getStock() - detalle.getCantidad());
+        }
+
+        return total;
+    }
 }
+
 
 
 
