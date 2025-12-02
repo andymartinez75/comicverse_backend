@@ -32,7 +32,7 @@ https://postimg.cc/gallery/p29Gd5M
 "precio": 5200.0,
 "stock": 12,
 "oferta": true,
-"imagen": "https://i.postimg.cc/pLVLDvQy/SPIDERMAN.jpg"
+"imagen": "https://i.postimg.cc/Y2Y3WZrH/SPIDERMAN.jpg"
 }
 (POST)api/pedidos
 {
