@@ -15,8 +15,6 @@ INSERT INTO comics (titulo, descripcion, editorial, autor, precio, stock, oferta
 
 ('Spawn', 'Comic de Spawn', 'Image Comics', 'Todd McFarlane', 6200, 5, FALSE, 'https://i.postimg.cc/F77Sz7Z0/SPAWN.jpg'),
 
-('Spider-Man', 'Aventuras de Spider-Man', 'Marvel', 'Stan Lee', 4900, 14, TRUE, 'https://i.postimg.cc/Z0Ypkfv7/SPIDERMAN.jpg'),
-
 ('Doctor Strange', 'Comic de Strange', 'Marvel', 'Stan Lee', 5100, 9, FALSE, 'https://i.postimg.cc/2VMZZrcM/STRANGE.jpg'),
 
 ('Superman', 'Historias de Superman', 'DC Comics', 'Jerry Siegel', 5800, 10, FALSE, 'https://i.postimg.cc/pmjnQ43T/SUPERMAN.jpg'),

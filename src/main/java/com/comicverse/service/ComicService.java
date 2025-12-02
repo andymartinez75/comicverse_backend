@@ -26,6 +26,11 @@ public class ComicService {
         return comicRepository.findById(id);
     }
 
+    //GET - obtener por NOMBRE
+    public List<Comic> buscarPorNombre(String nombre) {
+        return comicRepository.findByTituloContainingIgnoreCase(nombre);
+    }
+
     // POST - guardar nuevo
     public Comic guardar(Comic comic) {
 

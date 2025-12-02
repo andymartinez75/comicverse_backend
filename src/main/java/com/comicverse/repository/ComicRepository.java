@@ -14,6 +14,9 @@ public interface ComicRepository extends JpaRepository <Comic, Long> {
 
     List<Comic> findByTituloContainingAndPrecioLessThanEqual(String titulo, Double precio);
 
+    List<Comic> findByTituloContainingIgnoreCase(String titulo);
+
+
     boolean existsByTituloAndEditorial(String titulo, String editorial);
 
 }

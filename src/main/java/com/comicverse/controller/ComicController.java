@@ -47,6 +47,23 @@ public class ComicController {
                     .body("Error al obtener el cómic");
         }
     }
+    @GetMapping("/buscar")
+    public ResponseEntity<?> buscarPorNombre(@RequestParam String nombre) {
+        try {
+            List<Comic> resultados = comicService.buscarPorNombre(nombre);
+
+            if (resultados.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body("No se encontraron cómics con ese nombre");
+            }
+
+            return ResponseEntity.ok(resultados);
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error al buscar el cómic por nombre");
+        }
+    }
 
     @PostMapping
     public ResponseEntity<?> crearComic(@RequestBody Comic comic) {
